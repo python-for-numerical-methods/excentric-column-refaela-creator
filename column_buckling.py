@@ -28,11 +28,23 @@ def find_critical_load(L, E, A, r, c, e, sigma_allow):
         if current_p <= 0:
             return -sigma_allow
             
-        # הארגומנט של פונקציית הסקאנט
+        # הארגומנט של פונקציית הסקאנט (ברדיאנים)
         angle_rad = (L / (2 * r)) * math.sqrt(current_p / (E * A))
         secant_val = 1.0 / math.cos(angle_rad)
         
         # חישוב המאמץ הנוכחי
         current_stress = (current_p / A) * (1.0 + eccentricity_ratio * secant_val)
         
-        # מר
+        # מרחק מהמאמץ המותר
+        return current_stress - sigma_allow
+
+    # גבולות החיפוש עבור שיטת החצייה
+    min_load = 1e-4
+    max_load = 0.999 * euler_limit
+    
+    try:
+        # שימוש במודול האופטימיזציה למציאת נקודת האפס (Bisection)
+        solution = opt.bisect(equation_to_solve, min_load, max_load)
+        return float(solution)
+    except ValueError:
+        raise ValueError("Cannot converge to a solution with the given structural parameters.")
